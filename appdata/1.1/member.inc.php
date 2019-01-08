@@ -4,9 +4,19 @@
 	This is NOT a freeware, use is subject to license.txt
 */
 defined('IN_DESTOON') or exit('Access Denied');
+//if($_userid) jsonexit(array('status'=>-999));
 require DT_ROOT.'/include/post.func.php';
 require DT_ROOT.'/module/'.$module.'/member.class.php';
 $do = new member;
+$do->userid = $_userid;
+$do->username = $_username;
+$do->isApp = true;
+$user = $do->get_one();
+$GROUP = cache_read('group.php');
+$MFD = cache_read('fields-member.php');
+$CFD = cache_read('fields-company.php');
+isset($post_fields) or $post_fields = array();
+if($MFD || $CFD) require DT_ROOT.'/include/fields.func.php';
 
 switch($action) {
 	case 'reg':
@@ -124,47 +134,33 @@ switch($action) {
     $jsonarr['msg']='登录失败';
     jsonexit($jsonarr);
 	break;
-	case 'setnewpass':
+	case 'grade':
 		$jsonarr = array();
 		$jsonarr['status']=0;
 		if(empty($_userid)){
+			$jsonarr['status']=-999;
 			$jsonarr['msg']='您未登录';
 			jsonexit($jsonarr);
 		}
-		$username=$oldusername;
-    $password=$opass;
-    $newpassword=$upass;
-
-    require DT_ROOT.'/include/post.func.php';
-    require DT_ROOT.'/module/member/member.class.php';
-    $do = new member;
-
-    $user = $do->login($username, $password, 86400*365,false,false);
-    if($user) {
-      $do->userid=$_userid;
-      $r=$do->edit(array('password'=>$newpassword),false);
-      if($r){
-        $user = $do->login($username, $upass, 86400*365,false,false);
-        if($user) {
-          $jsonarr['status']=1;
-          $jsonarr['acctoken'] = $user['auth'];
-          jsonexit($jsonarr);
-        }
-      }else{
-        $jsonarr['msg']='修改密码失败了';
-        jsonexit($jsonarr);
-      }
-    }else{
-			$jsonarr['msg']='用户名或原密码错误';
-			jsonexit($jsonarr);
-		}
 		
+		//$year = intval($year);
+		//in_array($year, array(1, 2, 3, 4, 5)) or $year = 1;
+		
+		$company = $user['company'];
+		$groupid = 7;
+		
+		$r = $db->get_one("select itemid from {$DT_PRE}upgrade where userid='{$_userid}' and status='2'");
+		if($r) $db->query("update {$DT_PRE}upgrade set addtime='$DT_TIME',ip='$DT_IP',amount='$fee' where itemid='{$r[itemid]}'");
+		else $db->query("INSERT INTO {$DT_PRE}upgrade (userid,username,gid,groupid,company,addtime,ip,amount,status) VALUES ('$_userid','$_username','$_groupid','$groupid','$company','$DT_TIME', '$DT_IP','$fee','2')");
+		
+		$jsonarr['status']=1;
 		jsonexit($jsonarr);
 	break;
 	case 'getuserinfo':
 		$jsonarr = array();
 		$jsonarr['status']=-1;
 		if(empty($_userid)){
+			$jsonarr['status']=-999;
 			$jsonarr['msg']='您未登录';
 			jsonexit($jsonarr);
 		}
@@ -176,15 +172,33 @@ switch($action) {
 		$tmpArr=array();
     $tmpArr['id'] = $r['userid'];
     unset($r['userid']);
-    $tmpArr['area'] = $r['areaid'];
-    if($r['areaid']) $tmpArr['areaname'] = area_pos($r['areaid'],' ');
-    else $tmpArr['areaname'] = '';
+    if($r['areaid']){
+	 $tmpArr['areaname'] = area_pos($r['areaid'],'');
+	 $r['areaid'] = area_join($r['areaid']);
+    }else $tmpArr['areaname'] = '';
     $tmpArr = array_merge($tmpArr, $r);
 
 		if($r['groupid'] >= '6'){
+			$tmpArr['vipfee'] = 3000;
 			$r2 = $db->get_one("SELECT * FROM {$DT_PRE}company WHERE userid='$_userid'");
 			if($r2) {
-        unset($r2['hits'],$r2['keyword'],$r2['linkurl']);
+        		unset($r2['hits'],$r2['keyword'],$r2['linkurl'],$r2['areaid']);
+        		//
+        		$r2['catid'] = trim($r2['catid'], ",");
+        		if($r2['catid']) $r2['catid'] = explode(",", $r2['catid']);
+        		else $r2['catid'] = array();
+        		//
+        		if($r2['mode']) $r2['mode'] = explode(",", str_replace(array('全日制教学','培训班','一对一教学'), array('1','2','3'), $r2['mode']));
+        		else $r2['mode'] = array();
+        		//
+      		//$tmpArr['expired'] = $r2['totime'] && $r2['totime'] < $DT_TIME ? true : false;
+      		//$tmpArr['vip'] = array('startdate'=>'1232','enddate'=>'1223','leftday'=>'12');
+      		if(empty($r2['vip'])) $r2['vip'] = 0;
+      		else $r2['vip'] = intval($r2['vip']);
+        
+        		$r2['content'] = '';
+        		$r3 = $db->get_one("SELECT * FROM {$DT_PRE}company_data WHERE userid='$_userid'");
+        		if($r3['content']) $r2['content'] = $r3['content'];
 				$tmpArr = array_merge($tmpArr, $r2);
 			}
       //
@@ -193,14 +207,12 @@ switch($action) {
       while($r = $db->fetch_array($result)) {
       	if(!empty($r['item_value'])) $tmpArr['banners'][] = $r['item_value'];
       }
-      //
-      $tmpArr['vip'] = array('startdate'=>'1232','enddate'=>'1223','leftday'=>'12');
 		}
 
 		$jsonarr['userinfo'] = $tmpArr;
 		jsonexit($jsonarr);
 	break;
-	case 'setuserinfo':
+	case 'setuserinfo2':
     if($key=='address' && $imei && $mac){
       $client = md5($imei.$mac);
       $lasttime=date('Y-m-d H:i:s',$DT_TIME);
@@ -319,14 +331,18 @@ switch($action) {
 		
 		jsonexit($jsonarr);
 	break;
-	case 'setcompanyinfo':
+	case 'setuserinfo':
 		$jsonarr = array();
 		$jsonarr['status']=-1;
 		if(empty($_userid)){
 			$jsonarr['msg']='您未登录';
 			jsonexit($jsonarr);
 		}
-		
+		if(empty($_POST)){
+			$jsonarr['status']=1;
+			jsonexit($jsonarr);
+		}
+		/*
 		$lng=$lat='';
 		$url="http://api.map.baidu.com/geocoder/v2/?ak=9ac4b01814977c8a3241307fcf400166&output=json&address=".urlencode($address);
 		$content = file_get_contents($url);
@@ -337,20 +353,32 @@ switch($action) {
 				$lat = $tmp['result']['location']['lat'];
 			}
 		}
+		*/
 
-		$db->query("UPDATE {$DT_PRE}company SET address='$address', company='$company', type='$type', business='$business', regyear='$regyear', size='$size', capital='$capital', postcode='$postcode', telephone='$telephone', fax='$fax', homepage='$homepage', regunit='人民币',clng='$lng',clat='$lat' WHERE userid='$_userid'");
-
-		if($groupid==5){
-			$db->query("delete from {$DT_PRE}upgrade WHERE status='2' and userid='$_userid'");
-			$db->query("INSERT INTO {$DT_PRE}upgrade (userid,username,groupid,company,truename,telephone,mobile,email,addtime,ip,status) VALUES ('$_userid','$_username', '6','$company','$truename','$telephone','$mobile','$email', '$DT_TIME', '$DT_IP','2')");
+		if(!empty($_POST['password']) && $user['password'] != dpassword($_POST['oldpassword'], $user['passsalt'])) {
+			$jsonarr['msg']=$L['error_password'];
+			jsonexit($jsonarr);
 		}
-
-		if($groupid==5 && $thumb){
-			$db->query("delete from {$DT_PRE}validate WHERE type='company' and username='$_username'");
-			$db->query("INSERT INTO {$DT_PRE}validate (title,type,thumb,username,addtime,editor,edittime,status) VALUES ('$company','company','$thumb','$_username','$DT_TIME','system','$DT_TIME','2')");
-		}
+		//if($post['payword'] && $user['payword'] != dpassword($post['oldpayword'], $user['paysalt'])) message($L['error_payword']);
 		
-		$jsonarr['status']=1;
+		$unsetKey = array('password','passsalt','payword','paysalt','credit','money');
+		foreach($unsetKey as $k){
+			unset($user[$k]);
+		}
+		if(empty($_POST['mode'])) {
+			$r3 = $db->get_one("SELECT mode FROM {$DT_PRE}company WHERE userid='$_userid'");
+        	$_POST['mode'] = $r3['mode'];
+		}
+		$_POST['mode'] = explode(",", $_POST['mode']);
+		if(empty($_POST['content'])) {
+			$r3 = $db->get_one("SELECT * FROM {$DT_PRE}company_data WHERE userid='$_userid'");
+        	$_POST['content'] = $r3['content'];
+		}
+		if($do->edit(array_merge($user,$_POST))){
+			$jsonarr['status']=1;
+		} else {
+			$jsonarr['msg']=$do->errmsg;
+		}
 		
 		jsonexit($jsonarr);
 	break;

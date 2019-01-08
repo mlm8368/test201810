@@ -394,6 +394,18 @@ if($userid || $username) {
         jsonexit($jsonarr);
       }
     break;
+    case 'profile':
+      if ($op == 'list') {
+        
+      } else if ($op == "edit") {
+        $jsonarr = array();
+        $jsonarr['status']=1;
+        
+        $db->query("update {$DT_PRE}company_teacher set jointime ='{$jointime}' where itemid='{$id}'");
+        
+        jsonexit($jsonarr);
+      }
+    break;
   }
 }
 ?>

@@ -4,7 +4,7 @@ defined('IN_DESTOON') or exit('Access Denied');
 	[DESTOON B2B System] Copyright (c) 2008-2018 www.destoon.com
 	This is NOT a freeware, use is subject to license.txt
 */
-$CFG['database'] = 'mysql';
+$CFG['database'] = 'mysqli';
 $CFG['pconnect'] = '0';
 $CFG['db_host'] = '127.0.0.1';
 $CFG['db_name'] = 'dog';
@@ -14,7 +14,7 @@ $CFG['db_charset'] = 'utf8';
 $CFG['db_expires'] = '0';
 $CFG['tb_pre'] = 'edu_';
 $CFG['charset'] = 'utf-8';
-$CFG['url'] = 'http://v7.dog1314.com/';
+$CFG['url'] = 'http://localhost/';
 $CFG['com_domain'] = '';
 $CFG['com_dir'] = '1';
 $CFG['com_rewrite'] = '0';

@@ -115,7 +115,7 @@ switch($action) {
       $condition = " a.classesid = '{$classesid}' and a.isdelete = 0";
       $result = $do->get_studentlist($condition);
       while($r = DB::fetch_array($result)) {
-        if($r[id]) $jsonarr['lists'][] = outStudent($r);
+        if($r['id']) $jsonarr['lists'][] = outStudent($r);
       }
   
       jsonexit($jsonarr);

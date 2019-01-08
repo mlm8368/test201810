@@ -23,3 +23,8 @@
 /app/Config/core.php
 /app/Config/database.php
 /vendors/*
+/config.inc.php
+/file/*
+/test.php
+/about/*
+/mobile/*

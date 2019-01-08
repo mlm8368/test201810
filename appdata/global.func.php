@@ -10,20 +10,31 @@ defined('IN_DESTOON') or exit('Access Denied');
 * 返回值：无
 */
 function jsonexit($string) {
-	global $CFG;
+	//global $CFG;
 	
-	if(is_array($string)) {
-    //error_log(print_r($string,true));
+	logs($string);
+  if(is_array($string)) {
     $string = json_encode($string);
-  } else {
-    //error_log($string);
-  }
+  } 
   
 	exit($string);
 }
 
 function logs($msg) {
-  //error_log($msg);
+	if(is_array($msg)) $msg = print_r($msg,true);
+    error_log($msg);
 }
 
+function area_join($areaid) {
+	global $AREA;
+	$areaid = intval($areaid);
+	$AREA or $AREA = cache_read('area.php');
+	$arrparentid = $AREA[$areaid]['arrparentid'] ? explode(',', $AREA[$areaid]['arrparentid']) : array();
+	$r = array();
+	foreach($arrparentid as $one){
+		if($one) $r[] = ''.$one;
+	}
+	$r[] = ''.$areaid;
+	return $r;
+}
 ?>

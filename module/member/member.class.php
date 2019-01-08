@@ -9,6 +9,7 @@ class member {
 	var $table_company;
 	var $table_company_data;
 	var $errmsg = errmsg;
+	var $isApp = false;
 
     function __construct() {
 		$this->table_member = DT_PRE.'member';
@@ -153,18 +154,20 @@ class member {
 			if(!$this->is_company($member['company'])) return $this->_($this->errmsg);
 			if($this->company_exists($member['company'])) return $this->_($L['member_company_reg']);
 		}
+		if(!isset($member['password'])) $member['password'] = '';
+		if(!isset($member['payword'])) $member['payword'] = '';
 		if($this->userid) {
 			if(strlen($member['truename']) < 2 || !$this->is_clean($member['truename'])) return $this->_($L['member_truename_null']);
 			$areaid = intval($member['areaid']);
 			if(!$areaid || !DB::get_one("SELECT areaid FROM ".DT_PRE."area WHERE areaid=$areaid")) return $this->_($L['member_areaid_null']);
-			if($member['password'] && !$this->is_password($member['password'], $member['cpassword'])) return false;
-			if($member['payword'] && !$this->is_payword($member['payword'], $member['cpayword'])) return false;
+			if(isset($member['password']) && $member['password'] && !$this->is_password($member['password'], $member['cpassword'])) return false;
+			if(isset($member['payword']) && $member['payword'] && !$this->is_payword($member['payword'], $member['cpayword'])) return false;
 			if($member['groupid'] > 5) {
 				if(strlen($member['type']) < 2) return $this->_($L['member_type_null']);
 				if(!is_telephone($member['telephone'])) return $this->_($L['member_telephone_null']);
 				if(strlen($member['regyear']) != 4 || !is_numeric($member['regyear'])) return $this->_($L['member_regyear_null']);
 				if(empty($member['address'])) return $this->_($L['member_address_null']);
-				if(word_count($member['content']) < 5) return $this->_($L['member_introduce_null']);
+				if(isset($member['content']) && word_count($member['content']) < 5) return $this->_($L['member_introduce_null']);
 				if(!$member['business']) return $this->_($L['member_business_null']);
 				if(strlen($member['catid']) < 2) return $this->_($L['member_catid_null']);
 			}
@@ -173,7 +176,7 @@ class member {
 			if($member['groupid'] > 5 && !$this->is_company($member['company'])) return false;
 			if(!$this->is_password($member['password'], $member['cpassword'])) return false;
 		}
-		if(DT_MAX_LEN && strlen(clear_img($member['content'])) > DT_MAX_LEN) return $this->_(lang('message->pass_max'));
+		if(isset($member['content']) && DT_MAX_LEN && strlen(clear_img($member['content'])) > DT_MAX_LEN) return $this->_(lang('message->pass_max'));
 		return true;
 	}
 
@@ -445,10 +448,12 @@ class member {
 			credit_record($login_username, $MOD['credit_login'], 'system', $L['member_record_login'], DT_IP);
 		}
 		$cookietime = DT_TIME + ($login_cookietime ? intval($login_cookietime) : 86400*7);
-    $auth = encrypt($user['userid'].'|'.$user['password'], DT_KEY.'USER');
-    $user['auth'] = $auth;
-		set_cookie('auth', $auth, $cookietime);
-		set_cookie('username', $user['username'], DT_TIME + 30*86400);
+    	$auth = encrypt($user['userid'].'|'.$user['password'], DT_KEY.'USER');
+    	$user['auth'] = $auth;
+    	if($this->isApp === false) {
+			set_cookie('auth', $auth, $cookietime);
+			set_cookie('username', $user['username'], DT_TIME + 30*86400);
+		}
 		DB::query("UPDATE {$this->table_member} SET loginip='".DT_IP."',logintime=".DT_TIME.",logintimes=logintimes+1 WHERE userid=$userid");
 		$this->cart($userid);
 		$this->bind($user['username'], DT_TIME);

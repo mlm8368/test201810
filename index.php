@@ -2,7 +2,7 @@
 /*
 	[DESTOON B2B System] Copyright (c) 2008-2018 www.destoon.com
 	This is NOT a freeware, use is subject to license.txt
-*/
+ */
 require 'common.inc.php';
 $username = $domain = '';
 if(isset($homepage) && check_name($homepage)) {

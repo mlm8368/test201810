@@ -17,7 +17,7 @@ require DT_ROOT.'/include/module.func.php';
 // include load('wap.lang');
 $wap_modules = array('member', 'company', 'extend', 'student', 'classes');
 //
-logs(print_r($_POST, true));
+logs($_POST);
 //
 if($_userid>0){
   $db->query("UPDATE LOW_PRIORITY {$db->pre}member SET logintime='{$DT_TIME}' WHERE userid='$_userid'", 'UNBUFFERED');
@@ -180,6 +180,15 @@ if(in_array($module, $wap_modules)) {
     $jsonarr = array();
     $jsonarr['status']=1;
     jsonexit($jsonarr);
+  }else if($action=='setbosacests'){
+    $item='bos';
+    $item_key='sts';
+    $item_value=json_encode($_POST);
+    //print_r($_POST,true);
+    
+    $db->query("delete from {$DT_PRE}setting where item='{$item}' and item_key='{$item_key}'");
+    $db->query("INSERT INTO {$DT_PRE}setting (item,item_key,item_value) VALUES ('{$item}','{$item_key}','{$item_value}')");
+    jsonexit(array('status'=>1));
   }
 }
 jsonexit("{\"state\":\"index-err\"}");
