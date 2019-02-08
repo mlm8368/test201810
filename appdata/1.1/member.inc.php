@@ -382,6 +382,80 @@ switch($action) {
 		
 		jsonexit($jsonarr);
 	break;
+	case 'updatebanner':
+		$jsonarr = array();
+		$jsonarr['status']=-1;
+		if(empty($_userid)){
+			$jsonarr['msg']='您未登录';
+			jsonexit($jsonarr);
+		}
+		/*
+		if(empty($_POST)){
+			$jsonarr['status']=1;
+			jsonexit($jsonarr);
+		}
+		*/
+		$post = $_POST;
+		if(!empty($post['delpic'])){
+			$delpic = $post['delpic'];
+			unset($post['delpic']);
+		}
+		
+		for($i=1;$i<=5;$i++){
+			if(empty($post['banner'.$i])) $post['banner'.$i] = '';
+		}
+		
+		require DT_ROOT.'/module/'.$module.'/global.func.php';
+		update_company_setting($_userid, $post);
+		
+		$jsonarr['status']=1;
+		jsonexit($jsonarr);
+	break;
+	case 'validate':
+		$jsonarr = array();
+		$jsonarr['status']=0;
+		
+		$va = $db->get_one("SELECT itemid,status,title,thumb,thumb1,thumb2 FROM {$DT_PRE}validate WHERE type='$type' AND username='$_username'");
+		if($op == 'info') {
+			if(empty($va)) {
+				$va = array();
+				$va['status'] = 2;
+				$va['title'] = $user['truename'];
+				$va['thumbs'] = array(array('label'=>'证件图片','thumb'=>''));
+				
+				if($type=='company') {
+					$va['title'] = $user['company'];
+					$va['thumbs'] = array(array('label'=>'证件图片','thumb'=>''), array('label'=>'证件图片','thumb'=>''), array('label'=>'证件图片','thumb'=>''));
+				}
+			}else{
+				$va['thumbs'] = array(array('label'=>'证件图片','thumb'=>$va['thumb']));
+				if($type=='company') {
+					$va['thumbs'][] = array('label'=>'证件图片','thumb'=>$va['thumb1']);
+					$va['thumbs'][] = array('label'=>'证件图片','thumb'=>$va['thumb2']);
+				}
+				unset($va['thumb'],$va['thumb1'],$va['thumb2']);
+			}
+			$jsonarr['status']=1;
+			$jsonarr['info']=$va;
+			jsonexit($jsonarr);
+		}
+		if(!empty($va) && $va['status'] != 2) {
+			jsonexit($jsonarr);
+		}
+		if(empty($va)){
+			if(!isset($thumb)) $thumb = '';
+			if(!isset($thumb1)) $thumb1 = '';
+			if(!isset($thumb2)) $thumb2 = '';
+			$db->query("INSERT INTO {$DT_PRE}validate (type,username,ip,addtime,status,editor,edittime,title,thumb,thumb1,thumb2) VALUES ('$type','$_username','$DT_IP','$DT_TIME','2','system','$DT_TIME','$title','$thumb','$thumb1','$thumb2')");
+		}else{
+			if(!isset($thumb)) $thumb = $va['thumb'];
+			if(!isset($thumb1)) $thumb1 = $va['thumb1'];
+			if(!isset($thumb2)) $thumb2 = $va['thumb2'];
+			$db->query("update {$DT_PRE}validate set thumb='$thumb', thumb1='$thumb1', thumb2='$thumb2', edittime='$DT_TIME' where  itemid='$va[itemid]'");
+		}
+		$jsonarr['status']=1;
+		jsonexit($jsonarr);
+	break;
 	case 'favorite':
 		$jsonarr = array();
 		$jsonarr['status']=0;

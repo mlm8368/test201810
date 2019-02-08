@@ -31,9 +31,9 @@ function is_captcha(v) {
 		return v.length > 1;
 	}
 }
-$(function() {
+//$(function() {
 	$('#captcha').bind('keyup blur', function() {
 		checkcaptcha($('#captcha').val());
 	});
-});
+//});
 </script>
