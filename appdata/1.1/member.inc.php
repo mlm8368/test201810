@@ -428,6 +428,7 @@ switch($action) {
 					$va['thumbs'] = array(array('label'=>'证件图片','thumb'=>''), array('label'=>'证件图片','thumb'=>''), array('label'=>'证件图片','thumb'=>''));
 				}
 			}else{
+				$va['status'] = intval($va['status']);
 				$va['thumbs'] = array(array('label'=>'证件图片','thumb'=>$va['thumb']));
 				if($type=='company') {
 					$va['thumbs'][] = array('label'=>'证件图片','thumb'=>$va['thumb1']);
