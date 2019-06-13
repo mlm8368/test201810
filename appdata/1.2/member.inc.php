@@ -76,11 +76,6 @@ switch($action) {
     $jsonarr = array();
     $jsonarr['status']=0;
 
-    if($op === 'checklogin') {
-      if(!empty($_userid)) $jsonarr['status']=1;
-      jsonexit($jsonarr);
-    }
-
     $sql = "SELECT a.userid,a.username,a.passport,a.avatarpic,a.mobile,a.groupid,a.areaid,a.truename,a.gender FROM {$DT_PRE}member a ";
     
     if($submit) {

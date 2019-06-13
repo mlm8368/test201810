@@ -448,7 +448,7 @@ class member {
 			credit_record($login_username, $MOD['credit_login'], 'system', $L['member_record_login'], DT_IP);
 		}
 		$cookietime = DT_TIME + ($login_cookietime ? intval($login_cookietime) : 86400*7);
-    	$auth = encrypt($user['userid'].'|'.$user['password'], DT_KEY.'USER');
+    	$auth = encrypt($user['userid'].'|'.$user['password'].'|'.$user['mobile'], DT_KEY.'USER');
     	$user['auth'] = $auth;
     	if($this->isApp === false) {
 			set_cookie('auth', $auth, $cookietime);

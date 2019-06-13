@@ -19,10 +19,6 @@ $wap_modules = array('member', 'company', 'extend', 'student', 'classes');
 //
 logs($_POST);
 //
-if($_userid>0){
-  $db->query("UPDATE LOW_PRIORITY {$db->pre}member SET logintime='{$DT_TIME}' WHERE userid='$_userid'", 'UNBUFFERED');
-}
-//
 if(in_array($module, $wap_modules)) {
 	if(in_array($action, array('category', 'area', 'ad'))) {
 		include $action.'.inc.php';
@@ -30,7 +26,15 @@ if(in_array($module, $wap_modules)) {
 		include $module.'.inc.php';
 	}
 }else {
-  if($action == 'errorlog'){
+  if($action == 'checklogin'){
+    $jsonarr = array();
+    $jsonarr['status']=0;
+    if(!empty($_userid)) {
+		$jsonarr['status']=1;
+		$db->query("UPDATE LOW_PRIORITY {$db->pre}member SET logintime='{$DT_TIME}' WHERE userid='$_userid'", 'UNBUFFERED');
+	}
+    jsonexit($jsonarr);
+  }else if($action == 'errorlog'){
     $db->query("INSERT INTO {$DT_PRE}404 (url,refer,robot,username,ip,addtime) VALUES ('$url','$refer','','$_username','$DT_IP','$DT_TIME')");
     jsonexit(array('status'=>1));
   }else if($action=='bcebosFile'){

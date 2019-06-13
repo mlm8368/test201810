@@ -138,14 +138,15 @@ if($destoon_auth) {
 	$_userid = isset($_dauth[0]) ? intval($_dauth[0]) : 0;
 	if($_userid) {
 		$_password = isset($_dauth[1]) ? trim($_dauth[1]) : '';
+		$_mobile = isset($_dauth[2]) ? trim($_dauth[2]) : '';
 		$USER = $db->get_one("SELECT username,passport,company,truename,mobile,password,groupid,email,message,chat,sound,online,sms,credit,money,loginip,admin,aid,edittime,trade FROM {$DT_PRE}member WHERE userid=$_userid");
-		if($USER && $USER['password'] == $_password) {
+		if($USER && $USER['password'] == $_password && $USER['mobile'] == $_mobile) {
 			if($USER['groupid'] == 2) dalert(lang('message->common_forbidden'));
 			extract($USER, EXTR_PREFIX_ALL, '');
 		} else {
 			$_userid = 0;
 		}
-		unset($destoon_auth, $USER, $_dauth, $_password);
+		unset($destoon_auth, $USER, $_dauth, $_password, $_mobile);
 	}
 }
 if($_userid == 0) { $_groupid = 3; $_username = ''; }
