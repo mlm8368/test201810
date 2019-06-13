@@ -76,18 +76,12 @@ switch($action) {
     $jsonarr = array();
     $jsonarr['status']=0;
 
-    $sql = "SELECT a.userid,a.username,a.passport,a.avatarpic,a.mobile,a.groupid,a.areaid,a.truename,a.gender FROM {$DT_PRE}member a ";
-    
-    if($op === 'checkloginuserinfo') {
-      $sql .= " WHERE a.`userid`='{$_userid}'";
-      $user = $db->get_one($sql);
-      if($user['userid']) {
-        $jsonarr['status']=1;
-        $jsonarr['userInfo']=setLoginUserInfo($user);
-      }
-
+    if($op === 'checklogin') {
+      if(!empty($_userid)) $jsonarr['status']=1;
       jsonexit($jsonarr);
     }
+
+    $sql = "SELECT a.userid,a.username,a.passport,a.avatarpic,a.mobile,a.groupid,a.areaid,a.truename,a.gender FROM {$DT_PRE}member a ";
     
     if($submit) {
       if(!$mobile) {
