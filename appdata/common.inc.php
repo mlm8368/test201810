@@ -146,7 +146,8 @@ if($destoon_auth) {
 		} else {
 			$_userid = 0;
 		}
-		unset($destoon_auth, $USER, $_dauth, $_password, $_mobile);
+		if($USER) $_mobile = $USER['mobile'];
+		unset($destoon_auth, $USER, $_dauth, $_password);
 	}
 }
 if($_userid == 0) { $_groupid = 3; $_username = ''; }

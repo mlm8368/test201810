@@ -29,6 +29,7 @@ if(in_array($module, $wap_modules)) {
   if($action == 'checklogin'){
     $jsonarr = array();
     $jsonarr['status']=0;
+    $jsonarr['mobile']=(string) $_mobile;
     if(!empty($_userid)) {
 		$jsonarr['status']=1;
 		$db->query("UPDATE LOW_PRIORITY {$db->pre}member SET logintime='{$DT_TIME}' WHERE userid='$_userid'", 'UNBUFFERED');
