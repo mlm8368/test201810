@@ -100,6 +100,7 @@ switch($action) {
       $user = $do->login($username, $password);
       if($user) {
         $jsonarr['status']=1;
+        $jsonarr['userid']=intval($user['userid']);
         $jsonarr['token']=$user['auth'];
 
         jsonexit($jsonarr);

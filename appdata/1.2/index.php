@@ -32,6 +32,7 @@ if(in_array($module, $wap_modules)) {
     $jsonarr['mobile']=(string) $_mobile;
     if(!empty($_userid)) {
 		$jsonarr['status']=1;
+		$jsonarr['userid']=(int) $_userid;
 		$db->query("UPDATE LOW_PRIORITY {$db->pre}member SET logintime='{$DT_TIME}' WHERE userid='$_userid'", 'UNBUFFERED');
 	}
     jsonexit($jsonarr);
